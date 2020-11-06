@@ -21,22 +21,18 @@ def fontSizeFunc(*new_var): ##폰트,사이즈 및 텍스트 창 설정 함수
     textbox2.configure(font=theFont) ## textbox2 텍스트창 글씨체는 theFont
 
 
-class ResizingCanvas(Canvas): 
-    def __init__(self,parent,**kwargs):
-        Canvas.__init__(self,parent,**kwargs)
+class ResizingCanvas(Canvas): ## 배경을 채우는 클래스 ##상속 Canvas
+    def __init__(self,parent,**kwargs): ## 초기화 메서드 클래스를 이용하여 객체 생성시 실행
+        Canvas.__init__(self,parent,**kwargs) ## **kwargs 딕셔너리 형태로 인자값 전달.
         self.bind("<Configure>", self.on_resize)
-        self.height = self.winfo_reqheight()
-        self.width = self.winfo_reqwidth()
+        ## 위젯의 크기가 변경하였을떄 , on_resize() 실행
+        self.height = self.winfo_reqheight() ## 창의 높이 가져오기
+        self.width = self.winfo_reqwidth() ## 창의 길이 가져오기
 
-    def on_resize(self,event):
-        wscale = float(event.width)/self.width
-        hscale = float(event.height)/self.height
+    def on_resize(self,event): ## GUI창 배경 설정 
         self.width = event.width
         self.height = event.height
         self.config(width=self.width, height=self.height)
-        self.scale("all",0,0,wscale,hscale)
-        fontSizeFunc(self.width/60)
-
 
 def loadText():  ##텍스트 추가
     global text ##text = 전역변수
@@ -185,8 +181,8 @@ menu.add_cascade(label='실행', menu=new_item)
 
 #---------------------------------------------------------------
 
-canvas = ResizingCanvas(root, height=800, width=800, bg="#BAF7B3", highlightthickness=0)
-canvas.pack(fill=tk.BOTH, expand=tk.YES)
+canvas = ResizingCanvas(root, height=800, width=800, bg="#BAF7B3", highlightthickness=0) ## 캔버스의 속성
+canvas.pack(fill=tk.BOTH, expand=tk.YES) ## GUI창의 크기 변형 될때 자동으로 변화할수 있게해줌 
 
 #번역을위한 text창 설정
 frame = tk.Frame(root, bg="white") ## 프레임생성
