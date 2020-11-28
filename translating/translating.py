@@ -8,8 +8,10 @@ from PIL import Image ,ImageGrab
 import pytesseract
 import numpy
 import cv2
-
-
+from nltk.tokenize import word_tokenize
+import nltk
+from nltk.tokenize import TreebankWordTokenizer
+tokenizer=TreebankWordTokenizer()
 
 def current_index(): ##변역하고자하는 TEXT 값을 가져오는 함수
     return textbox.index(tk.INSERT) ##Textbox 값 리턴
@@ -51,6 +53,7 @@ def translate(event=""): ## 번역
     text = textbox.get(1.0, 'end-1c') ##textbox안에 있는 텍스트 추출하여 text에 저장 
     client_id = "RdBrKuhpxmIinSG4r64S" ##파파고 ID
     client_secret = "KmSlI89ee6" ##파파고 secret key
+    
 
     input_text = urllib.parse.quote(text) ## papago API를 통해서 번역할 내용
     data = "source=en&target=ko&text=" + input_text ##영어 에서 한국어로 + 번역할 내용
@@ -71,10 +74,47 @@ def translate(event=""): ## 번역
         translated_text = data['message']['result']['translatedText'] ## 메세지 >> result >> translatedText 내용
 
         textbox2.delete(1.0, "end") ## textbox2 초기화
+        
         textbox2.insert("end-1c", translated_text) ## 번역내용을 출력
     else:##에러가 났다면
         print("Error Code:" + rescode) ##에러코드 출력
 
+
+def translate_word(word): ## 번역
+    
+    client_id = "RdBrKuhpxmIinSG4r64S" ##파파고 ID
+    client_secret = "KmSlI89ee6" ##파파고 secret key
+
+    input_text = urllib.parse.quote(word) ## papago API를 통해서 번역할 내용
+    data = "source=en&target=ko&text=" + input_text ##영어 에서 한국어로 + 번역할 내용
+    url = "https://openapi.naver.com/v1/papago/n2mt" ##파파고 관련 함수 및 모듈이 있는 url이라고 예상
+    request = urllib.request.Request(url) ## 해당 url request라고 지정
+    request.add_header("X-Naver-Client-Id", client_id) ## 파파고 ID 입력
+    request.add_header("X-Naver-Client-Secret", client_secret) ## 파파고 secret키 입력
+    response = urllib.request.urlopen(request, data=data.encode("utf-8")) ##URL을 열기위한 함수 
+    ##데이터를 유니코드 방식으로
+    rescode = response.getcode() ## url열기 성공시 response.status = 200 이되는데
+    ## 이때의 status의 값을 가져오는 함수
+    
+
+    if rescode == 200:#번역 성공시
+        response_body = response.read() ## 번역한 내용
+        response_body = response_body.decode('utf-8') ## 해독 방식
+        data = json.loads(response_body) ## response_body의 내용을 json을통해 data에 저장
+        translated_word = data['message']['result']['translatedText'] ## 메세지 >> result >> translatedText 내용
+        textbox3.insert("end-1c",translated_word + "\n")
+    else:##에러가 났다면
+        print("Error Code:" + rescode) ##에러코드 출력
+
+def get_tags(event=""):
+    global text
+    TTO=tokenizer.tokenize(text)
+    for i in range(1,len(TTO)):
+        if(len(i)<=2):
+            continue
+        else:
+            textbox3.insert("end-1c",TTO[i]+" : ")
+            translate_word(TTO[i])
 
 def mouse_callback(event, x, y, flags, param): ##마우스드래그 함수
     global start_x, start_y,mouse_is_pressing
@@ -109,7 +149,7 @@ def mouse_callback(event, x, y, flags, param): ##마우스드래그 함수
         text = pytesseract.image_to_string(img) ## 이미지속 문자열 추출
         textbox.insert("end-1c", text) ## textbox에 문자열 추가
         translate() ## 번역
-
+        get_tags()
 
 def capture(event=""): ##캡처를 위한 함수
     imgGrab = ImageGrab.grab(bbox=(0, 0, 1920, 1080)) ##캡쳐범위를 설정
@@ -135,7 +175,10 @@ def refresh(event=""): ##새로고침
    
     del text ##변수 제거
     del translated_text ##변수 제거
-   
+
+
+ 
+
 root = tk.Tk() ##GUI생성
 root.title("번역 프로그램") ##GUI 제목
 
@@ -186,17 +229,23 @@ canvas.pack(fill=tk.BOTH, expand=tk.YES) ## GUI창의 크기 변형 될때 자�
 
 #번역을위한 text창 설정
 frame = tk.Frame(root, bg="white") ## 프레임생성
-frame.place(relwidth=0.9, relheight=0.35, relx=0.05, rely=0.1) ## 프레임크기,위치
+frame.place(relwidth=0.6, relheight=0.35, relx=0.05, rely=0.1) ## 프레임크기,위치
 
 textbox = Text(frame) ##프레임 위에 TEXT덮어쓰우기
 textbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True) ## side = 정렬방향 / fill = 할당된 공간에 대한 크기 맞춤 /expand = 미사용 공간 확보
 
 #번역된 text창 설정
 frame2 = tk.Frame(root, bg="black")
-frame2.place(relwidth=0.9, relheight=0.35, relx=0.05, rely=0.5)
+frame2.place(relwidth=0.6, relheight=0.35, relx=0.05, rely=0.5)
 
 textbox2 = Text(frame2)
 textbox2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+frame3 = tk.Frame(root, bg="white")
+frame3.place(relwidth=0.2, relheight=0.75, relx=0.7 , rely=0.1)
+
+textbox3 = Text(frame3)
+textbox3.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
 #<초기설정>
 font_size = tk.IntVar() ##tk에서 사용할 변수타입을 int로 미리 생성
