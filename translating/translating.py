@@ -51,8 +51,8 @@ def translate(event=""): ## 번역
     global translated_text ##translated_text =  전역변수
     global text
     text = textbox.get(1.0, 'end-1c') ##textbox안에 있는 텍스트 추출하여 text에 저장 
-    client_id = "RdBrKuhpxmIinSG4r64S" ##파파고 ID
-    client_secret = "KmSlI89ee6" ##파파고 secret key
+    client_id = "JGN2Pj2Xv3JC1OTRJszT" ##파파고 ID
+    client_secret = "6pgeI_C_rw" ##파파고 secret key
     
 
     input_text = urllib.parse.quote(text) ## papago API를 통해서 번역할 내용
@@ -110,7 +110,8 @@ def get_tags(event=""):
     global text
     TTO=tokenizer.tokenize(text)
     for i in range(1,len(TTO)):
-        if(len(i)<=2):
+        sleep(300)
+        if(len(TTO[i])<=2):
             continue
         else:
             textbox3.insert("end-1c",TTO[i]+" : ")
